@@ -1,0 +1,91 @@
+from fpdf import FPDF
+
+class PDF(FPDF):
+    def header(self):
+        self.set_font('Arial', 'B', 14)
+        self.cell(0, 10, 'Comparative Table of Lesson Annotations', ln=True, align='C')
+        self.ln(5)
+
+    def chapter_title(self, title):
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, title, ln=True)
+        self.ln(3)
+
+    def chapter_body(self, body):
+        self.set_font('Arial', '', 11)
+        self.multi_cell(0, 8, body)
+        self.ln()
+
+    def improved_multi_cell(self, w, h, txt, border=1, align='L', fill=False):
+        # Save x,y
+        x = self.get_x()
+        y = self.get_y()
+        self.multi_cell(w, h, txt, border=border, align=align, fill=fill)
+        # Get new y
+        new_y = self.get_y()
+        # Move cursor to right of the multicell
+        self.set_xy(x + w, y)
+        return new_y - y  # height of multicell
+
+pdf = PDF()
+pdf.add_page()
+
+pdf.set_font('Arial', 'B', 12)
+pdf.cell(0, 10, 'Comparative Table of Two Lesson Annotations', ln=True, align='C')
+pdf.ln(5)
+
+# Table header
+pdf.set_font('Arial', 'B', 11)
+pdf.cell(50, 10, 'Criteria', border=1, align='C')
+pdf.cell(65, 10, 'Original Lesson Annotation', border=1, align='C')
+pdf.cell(65, 10, 'Lexical Approach Annotation', border=1, align='C')
+pdf.ln()
+
+pdf.set_font('Arial', '', 11)
+
+rows = [
+    ("Level", "A2+/B1", "A2+/B1"),
+    ("Topic", "Lifestyle Stories", "Lifestyle Stories"),
+    ("Lesson Goal", "Developing speaking, listening, and writing skills through grammar and vocabulary", 
+     "Developing skills in perceiving and using lexical chunks on lifestyle topic"),
+    ("Vocabulary Focus", "Revising and activating vocabulary as separate phrases", 
+     "Activating and expanding vocabulary via collocations and fixed expressions"),
+    ("Grammar Focus", "Explanation and practice of Past Simple and Past Continuous", 
+     "Minimal grammar, focus on mastering lexical units, grammar learned contextually"),
+    ("Pronunciation", "Exercises on word stress", "Working on rhythm and stress in whole lexical chunks"),
+    ("Speaking Skills", "Storytelling using grammatical structures and vocabulary", 
+     "Storytelling based on learned lexical chunks and connectors"),
+    ("Exercise Types", "Matching, gap-fill, dialogue", 
+     "Matching collocations, chunk gap-fill, pair storytelling"),
+    ("Video Usage", "Predicting plot, discussion, using vocabulary", 
+     "Transferring learned chunks to new video contexts"),
+    ("Main Approach", "Combination of vocabulary and grammar with focus on grammar", 
+     "Lexical approach - teaching through ready-made lexical units and repetition"),
+    ("Lesson Outcome", "Developing storytelling skills with grammatical accuracy and vocabulary", 
+     "Developing fluency and naturalness through automation of lexical chunks")
+]
+
+def clean_text(text):
+    return text.replace('—', '-').replace('’', "'")
+
+for row in rows:
+    max_height = 0
+    x_start = pdf.get_x()
+    y_start = pdf.get_y()
+    # Print first cell
+    height1 = pdf.improved_multi_cell(50, 7, clean_text(row[0]), border=1)
+    # Set y back to top for second cell
+    pdf.set_xy(x_start + 50, y_start)
+    height2 = pdf.improved_multi_cell(65, 7, clean_text(row[1]), border=1)
+    # Set y back to top for third cell
+    pdf.set_xy(x_start + 115, y_start)
+    height3 = pdf.improved_multi_cell(65, 7, clean_text(row[2]), border=1)
+    # Go to next line based on highest cell
+    max_height = max(height1, height2, height3)
+    pdf.set_xy(x_start, y_start + max_height)
+
+file_path = "/mnt/data/Comparative_Annotations_Table_wrapped.pdf"
+pdf.output(file_path)
+
+file_path
+
